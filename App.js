@@ -235,9 +235,14 @@ const App = () => {
         }
 
         if (isConnected(connections, connectionMode.sourceId, id)) {
-          log(`既に接続されています。`);
-          setConnectionMode({ active: false, sourceId: null });
-          return;
+           // 既に接続されている場合は切断処理を行う
+           setConnections((prev) => prev.filter((c) => 
+                !((c.from === connectionMode.sourceId && c.to === id) || 
+                  (c.from === id && c.to === connectionMode.sourceId))
+           ));
+           log(`ケーブルを取り外しました`);
+           setConnectionMode({ active: false, sourceId: null });
+           return;
         }
 
         const newConn = {
@@ -594,7 +599,7 @@ const App = () => {
                      </div>
                 </div>
                 <div className="h-8 w-px bg-slate-200 mx-2 hidden lg:block"></div>
-                <p className="text-sm text-slate-600 hidden lg:block flex-1 truncate">${currentMission.description}</p>
+                <p className="text-sm text-slate-900 font-bold hidden lg:block flex-1 truncate">${currentMission.description}</p>
               </div>
               
               <div className="flex items-center gap-2 md:gap-3 ml-2">
