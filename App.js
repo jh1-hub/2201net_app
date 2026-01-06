@@ -672,6 +672,7 @@ const App = () => {
           }}
           onDropDevice=${addDevice}
           isEncrypted=${isEncrypted}
+          isCompleted=${isCurrentMissionCompleted}
         />
 
         <${Inspector}
@@ -726,19 +727,12 @@ const App = () => {
                             シミュレーションを続ける
                         </button>
                       
-                      ${currentMissionSet && currentMissionIndex < currentMissionSet.missions.length - 1 ? html`
+                      ${!isLectureFlow && (currentMissionSet && currentMissionIndex < currentMissionSet.missions.length - 1 ? html`
                            <button 
                             onClick=${nextMission}
                             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all"
                           >
                               次のミッションへ <${ArrowRight} size=${18} />
-                          </button>
-                      ` : isLectureFlow && lecturePhase === 1 ? html`
-                           <button 
-                            onClick=${nextMission}
-                            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all"
-                          >
-                              解説の続きへ <${ArrowRight} size=${18} />
                           </button>
                       ` : html`
                            <button 
@@ -747,7 +741,7 @@ const App = () => {
                           >
                               ホームに戻る
                           </button>
-                      `}
+                      `)}
                   </div>
               </div>
           </div>

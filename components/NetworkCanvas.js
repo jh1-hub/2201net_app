@@ -16,6 +16,7 @@ export const NetworkCanvas = ({
   onBackgroundClick,
   onDropDevice,
   isEncrypted,
+  isCompleted = false, // New prop to indicate mission completion
 }) => {
   const canvasRef = useRef(null);
   const [draggingId, setDraggingId] = useState(null);
@@ -100,13 +101,20 @@ export const NetworkCanvas = ({
   return html`
     <div
       ref=${canvasRef}
-      className="flex-1 relative overflow-hidden canvas-grid cursor-default"
+      className=${`flex-1 relative overflow-hidden canvas-grid cursor-default transition-all duration-1000
+        ${isCompleted ? 'bg-emerald-50/80 shadow-[inset_0_0_40px_rgba(16,185,129,0.2)]' : ''}
+      `}
       onDrop=${handleDrop}
       onDragOver=${handleDragOver}
       onMouseMove=${handleMouseMove}
       onMouseUp=${handleMouseUp}
       onMouseDown=${onBackgroundClick}
     >
+      ${/* Optional: Background decoration for completed state */ ''}
+      ${isCompleted && html`
+        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9IiMxMGI5ODEiLz48L3N2Zz4=')]"></div>
+      `}
+
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
         ${connections.map((conn) => {
           const start = getCenter(conn.from);
