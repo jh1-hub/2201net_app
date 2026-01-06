@@ -77,6 +77,21 @@ export const MISSION_SETS = [
           check: (state) => {
               return state.missionFlags.encryptedSuccess;
           }
+      },
+      {
+          id: 6,
+          title: "インターネットへの接続 (ONU)",
+          description: "最後に、インターネットに接続するための機器「ONU」を配置し、ルーターとケーブルで接続してください。",
+          hint: "左パネルから「ONU」を選んで配置し、ケーブル接続モードで [ルーター] ↔ [ONU] をつなぎます。",
+          explanation: "ONU（光回線終端装置）は、光ファイバーを通ってきた「光信号」を、ルーターやPCが理解できる「デジタル信号」に変換する機器です。自宅で光回線を使う場合、必ず設置されます。",
+          check: (state) => {
+              const router = state.devices.find(d => d.type === 'ROUTER');
+              const onu = state.devices.find(d => d.type === 'ONU');
+              
+              if (!router || !onu) return false;
+              
+              return isConnected(state.connections, router.id, onu.id);
+          }
       }
     ]
   },
