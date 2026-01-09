@@ -67,6 +67,34 @@ export const NetworkCanvas = ({
     setDraggingId(null);
   };
 
+  // Touch Handlers
+  const handleTouchStart = (e, id) => {
+      e.stopPropagation(); // Don't trigger background click
+      const touch = e.touches[0];
+
+      if (connectionMode.active) {
+          e.preventDefault(); // Prevent mouse emulation
+          onDeviceClick(id);
+          return;
+      }
+
+      setDraggingId(id);
+      onDeviceClick(id); // Select it
+  }
+
+  const handleTouchMove = (e) => {
+    if (draggingId && canvasRef.current) {
+        // Prevent default to stop scrolling the page while dragging a node
+        e.preventDefault(); 
+        const touch = e.touches[0];
+        const rect = canvasRef.current.getBoundingClientRect();
+        const mouseXRel = touch.clientX - rect.left;
+        const mouseYRel = touch.clientY - rect.top;
+        
+        onDeviceMove(draggingId, mouseXRel - DEVICE_SIZE/2, mouseYRel - DEVICE_SIZE/2);
+    }
+  };
+
   const getCenter = (id) => {
     const device = devices.find((d) => d.id === id);
     if (!device) return { x: 0, y: 0 };
@@ -109,6 +137,9 @@ export const NetworkCanvas = ({
       onMouseMove=${handleMouseMove}
       onMouseUp=${handleMouseUp}
       onMouseDown=${onBackgroundClick}
+      onTouchMove=${handleTouchMove}
+      onTouchEnd=${handleMouseUp}
+      onTouchStart=${onBackgroundClick}
     >
       ${/* Optional: Background decoration for completed state */ ''}
       ${isCompleted && html`
@@ -147,6 +178,7 @@ export const NetworkCanvas = ({
           }}
           title=${getLabel(device.type)}
           onMouseDown=${(e) => handleMouseDown(e, device.id, device.x, device.y)}
+          onTouchStart=${(e) => handleTouchStart(e, device.id)}
         >
           <div className="bg-white p-2 rounded-lg shadow-md border border-slate-200 pointer-events-none">
             ${getIcon(device.type)}

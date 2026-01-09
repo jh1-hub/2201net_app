@@ -4,7 +4,7 @@ import { Monitor, Router, Network, Cable, Server, Printer, Box, CircleDot } from
 
 const html = htm.bind(React.createElement);
 
-export const Sidebar = ({ onStartConnection, connectionModeActive, mode }) => {
+export const Sidebar = ({ onStartConnection, connectionModeActive, mode, onAddDevice }) => {
   const handleDragStart = (e, type) => {
     e.dataTransfer.setData('deviceType', type);
     e.dataTransfer.effectAllowed = 'copy';
@@ -28,6 +28,7 @@ export const Sidebar = ({ onStartConnection, connectionModeActive, mode }) => {
             label="パソコン (PC)"
             icon=${html`<${Monitor} size=${20} />`}
             onDragStart=${handleDragStart}
+            onAddDevice=${onAddDevice}
             description="端末 (クライアント)"
           />
           <${DraggableItem}
@@ -35,6 +36,7 @@ export const Sidebar = ({ onStartConnection, connectionModeActive, mode }) => {
             label="サーバー (Server)"
             icon=${html`<${Server} size=${20} />`}
             onDragStart=${handleDragStart}
+            onAddDevice=${onAddDevice}
             description="サービスの提供"
           />
           <${DraggableItem}
@@ -42,6 +44,7 @@ export const Sidebar = ({ onStartConnection, connectionModeActive, mode }) => {
             label="プリンタ (Printer)"
             icon=${html`<${Printer} size=${20} />`}
             onDragStart=${handleDragStart}
+            onAddDevice=${onAddDevice}
             description="ネットワークプリンタ"
           />
           <div className="border-t border-slate-600 my-2"></div>
@@ -50,6 +53,7 @@ export const Sidebar = ({ onStartConnection, connectionModeActive, mode }) => {
             label="スイッチ (Switch)"
             icon=${html`<${Network} size=${20} />`}
             onDragStart=${handleDragStart}
+            onAddDevice=${onAddDevice}
             description="L2スイッチ (データ転送)"
           />
           ${/* Hide HUB in quiz mode to reduce confusion, as it's rarely used in modern training scenarios */''}
@@ -59,6 +63,7 @@ export const Sidebar = ({ onStartConnection, connectionModeActive, mode }) => {
               label="ハブ (Hub)"
               icon=${html`<${CircleDot} size=${20} />`}
               onDragStart=${handleDragStart}
+              onAddDevice=${onAddDevice}
               description="集線装置 (リピータハブ)"
             />
           `}
@@ -67,6 +72,7 @@ export const Sidebar = ({ onStartConnection, connectionModeActive, mode }) => {
             label="ルーター (Router)"
             icon=${html`<${Router} size=${20} />`}
             onDragStart=${handleDragStart}
+            onAddDevice=${onAddDevice}
             description="L3ルーター (経路制御)"
           />
           <${DraggableItem}
@@ -74,6 +80,7 @@ export const Sidebar = ({ onStartConnection, connectionModeActive, mode }) => {
             label="ONU"
             icon=${html`<${Box} size=${20} />`}
             onDragStart=${handleDragStart}
+            onAddDevice=${onAddDevice}
             description="光回線終端装置"
           />
         </div>
@@ -105,11 +112,12 @@ export const Sidebar = ({ onStartConnection, connectionModeActive, mode }) => {
   `;
 };
 
-const DraggableItem = ({ type, label, icon, onDragStart, description }) => {
+const DraggableItem = ({ type, label, icon, onDragStart, description, onAddDevice }) => {
   return html`
     <div
       draggable
       onDragStart=${(e) => onDragStart(e, type)}
+      onClick=${() => onAddDevice && onAddDevice(type)}
       className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg cursor-grab active:cursor-grabbing hover:bg-slate-600 border border-transparent hover:border-slate-500 transition-colors"
     >
       <div className="p-2 bg-slate-800 rounded-md text-blue-300">

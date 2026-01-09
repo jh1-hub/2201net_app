@@ -656,6 +656,7 @@ const App = () => {
             onStartConnection=${startConnectionMode} 
             connectionModeActive=${connectionMode.active}
             mode=${mode}
+            onAddDevice=${(type) => addDevice(type, 100 + Math.random() * 50, 100 + Math.random() * 50)}
         />
         
         <${NetworkCanvas}
