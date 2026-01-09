@@ -4,65 +4,77 @@ export const MISSION_SETS = [
   {
     id: 'basic_course',
     title: "基礎マスターコース",
-    description: "ネットワーク機器の役割、IPアドレス、Ping、暗号化など、ネットワークの基礎を順番に学びます。",
+    description: "ネットワーク機器の役割、IPアドレス、Pingなど、ネットワークの基礎を順番に学びます。",
     level: "★☆☆",
     missions: [
       {
           id: 1,
           title: "基本の機器配置",
-          description: "左のパネルから「パソコン」と「ルーター」を1台ずつキャンバスに配置してください。",
-          hint: "機器リストからアイコンをドラッグ＆ドロップして配置します。まずはこの2つだけでOKです。",
-          explanation: "ネットワークは「端末（PC）」と「通信機器」で構成されます。ルーターは異なるネットワーク同士をつなぐ重要な機器です。",
+          description: "左のパネルから「パソコン」を2台、「ルーター」を1台キャンバスに配置してください。",
+          hint: "機器リストからアイコンをドラッグ＆ドロップ（またはタップ）して配置します。PC2台とルーター1台を用意しましょう。",
+          explanation: "ネットワークは「端末（PC）」と「通信機器」で構成されます。今回は複数のPCをつなぐため、PCを2台用意しました。",
           check: (state) => {
-              const hasPC = state.devices.some(d => d.type === 'PC');
+              const pcCount = state.devices.filter(d => d.type === 'PC').length;
               const hasRouter = state.devices.some(d => d.type === 'ROUTER');
-              return hasPC && hasRouter;
+              return pcCount >= 2 && hasRouter;
           }
       },
       {
           id: 2,
           title: "スイッチを使った接続",
-          description: "「スイッチ」を追加し、パソコンとルーターをスイッチ経由で接続してください。",
-          hint: "構成: [パソコン] ↔ [スイッチ] ↔ [ルーター]。PCとルーターを直結してしまった場合は、ケーブル接続モードで再度同じ機器間をクリックするとケーブルを取り外せます。",
-          explanation: "通常、PCはルーターに直結せず「スイッチ」につなぎます。スイッチはLAN内のポートを増やし、効率的にデータを転送する役割を持ちます。",
+          description: "「スイッチ」を追加し、2台のパソコンとルーターをすべてスイッチに接続してください。",
+          hint: "構成: [PC1, PC2] ↔ [スイッチ] ↔ [ルーター]。すべての機器をスイッチに集めます。",
+          explanation: "通常、PCはルーターに直結せず「スイッチ」につなぎます。スイッチを使うことで、2台以上のPCを効率的にネットワークに参加させることができます。",
           check: (state) => {
               const switchDevice = state.devices.find(d => d.type === 'SWITCH');
               if (!switchDevice) return false;
               
-              const pc = state.devices.find(d => d.type === 'PC');
+              const pcs = state.devices.filter(d => d.type === 'PC');
               const router = state.devices.find(d => d.type === 'ROUTER');
-              if(!pc || !router) return false;
+              if(pcs.length < 2 || !router) return false;
 
               // 厳格なチェック: PCとルーターが直接つながっていないこと
-              const directConnection = isConnected(state.connections, pc.id, router.id);
+              const directConnection = pcs.some(pc => isConnected(state.connections, pc.id, router.id));
               if (directConnection) return false;
 
-              // スイッチ経由でつながっているか
-              const pcToSwitch = isConnected(state.connections, pc.id, switchDevice.id);
+              // スイッチ経由でつながっているか (PC全台とルーター)
+              const pcsToSwitch = pcs.every(pc => isConnected(state.connections, pc.id, switchDevice.id));
               const routerToSwitch = isConnected(state.connections, router.id, switchDevice.id);
 
-              return pcToSwitch && routerToSwitch;
+              return pcsToSwitch && routerToSwitch;
           }
       },
       {
           id: 3,
           title: "IPアドレスの設定",
-          description: "パソコンとルーターに正しいIPアドレスを設定してください。",
-          hint: "機器をクリックし、右パネルでIPを入力します。例: ルーター(192.168.1.1), パソコン(192.168.1.2)。",
-          explanation: "IPアドレスはネットワーク上の「住所」です。同じLAN内にある機器同士は、ネットワーク部（例：192.168.1）を揃える必要があります。",
+          description: "2台のパソコンとルーターに、同じネットワークのIPアドレスを設定してください。",
+          hint: "例: ルーター(192.168.1.1), PC1(192.168.1.2), PC2(192.168.1.3)。すべて重複しないようにします。",
+          explanation: "IPアドレスはネットワーク上の「住所」です。同じLAN内にある機器同士は、ネットワーク部（例：192.168.1）を揃え、ホスト部（末尾）は別々の番号にする必要があります。",
           check: (state) => {
-              const pc = state.devices.find(d => d.type === 'PC');
+              const pcs = state.devices.filter(d => d.type === 'PC');
               const router = state.devices.find(d => d.type === 'ROUTER');
-              if(!pc || !router) return false;
               
-              return isValidIP(pc.ip) && isValidIP(router.ip) && pc.ip !== router.ip;
+              // 必要な機器が揃っているか
+              if(pcs.length < 2 || !router) return false;
+              
+              const allDevices = [...pcs, router];
+
+              // 全て有効なIPか
+              if (!allDevices.every(d => isValidIP(d.ip))) return false;
+
+              // IPの重複がないか
+              const uniqueIps = new Set(allDevices.map(d => d.ip));
+              if (uniqueIps.size !== allDevices.length) return false;
+
+              // 全て同じサブネットか (ルーターを基準に判定)
+              return pcs.every(pc => isInSameSubnet(pc.ip, router.ip));
           }
       },
       {
           id: 4,
           title: "通信テスト (Ping)",
-          description: "パソコンからルーターへ実際に「Ping」を実行し、通信を成功させてください。",
-          hint: "設定だけでは不十分です。PCを選択→Pingテスト欄にルーターのIPを入力→「実行」を押し、青いパケットが往復して「応答あり」とログに出るのを確認してください。",
+          description: "どちらかのパソコンからルーターへ「Ping」を実行し、通信を成功させてください。",
+          hint: "PCを選択→Pingテスト欄にルーターのIPを入力→「実行」を押し、青いパケットが往復して「応答あり」とログに出るのを確認してください。",
           explanation: "Ping（ピング）は疎通確認の基本コマンドです。設定が正しくても、ファイアウォールや物理的な断線があれば通りません。「実際に通ったこと」を確認するのがネットワークエンジニアの仕事です。",
           check: (state) => {
               return state.missionFlags.pingSuccess;
@@ -70,16 +82,6 @@ export const MISSION_SETS = [
       },
       {
           id: 5,
-          title: "暗号化通信の体験",
-          description: "「通信の暗号化」をONにして、再度Pingを実行するか、鍵交換のアニメーションを確認してください。",
-          hint: "暗号化スイッチをONにするだけではクリアになりません。ONにした状態で通信（Pingなど）を行い、南京錠アイコンや鍵交換が表示されるのを確認してください。",
-          explanation: "インターネットなどの公共のネットワークを通るデータは、盗聴のリスクがあります。TLSなどを用いて暗号化することで、内容を秘密に保つことができます。",
-          check: (state) => {
-              return state.missionFlags.encryptedSuccess;
-          }
-      },
-      {
-          id: 6,
           title: "インターネットへの接続 (ONU)",
           description: "最後に、インターネットに接続するための機器「ONU」を配置し、ルーターとケーブルで接続してください。",
           hint: "左パネルから「ONU」を選んで配置し、ケーブル接続モードで [ルーター] ↔ [ONU] をつなぎます。",
